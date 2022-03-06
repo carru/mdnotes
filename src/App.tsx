@@ -2,44 +2,35 @@ import { FC, useState } from "react";
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { app, auth } from "./firebase";
-import { GoogleAuthProvider, signInWithPopup, User } from "firebase/auth";
-import { getFirestore, collection, FirestoreDataConverter, QueryDocumentSnapshot, WithFieldValue, DocumentData, SnapshotOptions, addDoc, Timestamp } from "firebase/firestore";
+import { User } from "firebase/auth";
+import { getFirestore, collection, addDoc, Timestamp } from "firebase/firestore";
+import { Navbar } from "./NavBar";
 
 function App() {
   const [user] = useAuthState(auth);
 
-  if (user) {
-    return (
-      <>
-        <SignOut />
-        <UserInfo user={user}/>
-        <NotesList user={user}/>
-        <NoteEditor user={user}/>
-      </>
-    );
-  } else {
-    return (
-      <>
-        <SignIn />
-      </>
-    );
-  }
-}
-
-const SignIn: FC = () => {
-  const signInWithGoogle = () => {
-    signInWithPopup(auth, new GoogleAuthProvider());
-  }
+  // if (user) {
+  //   return (
+  //     <>
+  //       <SignOut />
+  //       <UserInfo user={user}/>
+  //       <NotesList user={user}/>
+  //       <NoteEditor user={user}/>
+  //     </>
+  //   );
+  // } else {
+  //   return (
+  //     <>
+  //       <SignIn />
+  //     </>
+  //   );
+  // }
 
   return (
-    <button className="sign-in" onClick={signInWithGoogle}>Sign in with Google</button>
-  )
-}
-
-const SignOut: FC = () => {
-  return (
-    <button className="sign-out" onClick={() => auth.signOut()}>Sign Out</button>
-  )
+    <>
+      <Navbar user={user} />
+    </>
+  );
 }
 
 const NoteEditor: FC<{ user: User }> = (props) => {
@@ -101,15 +92,6 @@ const Note: FC<{ note: Note }> = (props) => {
   return (
     <>
       <p>{props.note.content}</p>
-    </>
-  )
-}
-
-const UserInfo: FC<{ user: User }> = (props) => {
-  return (
-    <>
-      <p>{props.user.displayName}</p>
-      <p>{props.user.email}</p>
     </>
   )
 }
