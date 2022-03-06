@@ -1,20 +1,29 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { app, auth } from "./firebase";
 import { GoogleAuthProvider, signInWithPopup, User } from "firebase/auth";
-import { getFirestore, collection, FirestoreDataConverter, QueryDocumentSnapshot, WithFieldValue, DocumentData, SnapshotOptions } from "firebase/firestore";
+import { getFirestore, collection, FirestoreDataConverter, QueryDocumentSnapshot, WithFieldValue, DocumentData, SnapshotOptions, addDoc, Timestamp } from "firebase/firestore";
 
 function App() {
   const [user] = useAuthState(auth);
 
-  return (
-    <>
-      { user ? <SignOut /> : <SignIn />}
-      <UserInfo user={user}></UserInfo>
-      <NotesList/>
-    </>
-  );
+  if (user) {
+    return (
+      <>
+        <SignOut />
+        <UserInfo user={user}/>
+        <NotesList user={user}/>
+        <NoteEditor user={user}/>
+      </>
+    );
+  } else {
+    return (
+      <>
+        <SignIn />
+      </>
+    );
+  }
 }
 
 const SignIn: FC = () => {
@@ -33,12 +42,42 @@ const SignOut: FC = () => {
   )
 }
 
-interface Note {
-  content: string;
+const NoteEditor: FC<{ user: User }> = (props) => {
+  const [content, setContent] = useState('');
+  const notesRef = collection(getFirestore(app), 'users', props.user.uid, 'notes');
+
+  const saveNote = async (e: any) => {
+    e.preventDefault();
+
+
+    const note: Note = {
+      content,
+      created: Timestamp.now()
+    }
+    await addDoc(notesRef, note);
+
+    setContent('');
+  }
+
+  return (
+    <>
+      <form onSubmit={saveNote}>
+        <input value={content} onChange={(e) => setContent(e.target.value)} placeholder="Note editor" />
+        <button type="submit" disabled={!content}>Save</button>
+      </form>
+    </>
+  )
 }
 
-const NotesList: FC = () => {
-  const notesRef = collection(getFirestore(app), 'notes');
+interface Note {
+  content: string;
+  created: Timestamp
+}
+
+const NotesList: FC<{ user: User }> = (props) => {
+  const notesRef = collection(getFirestore(app), 'users', props.user.uid, 'notes');
+  const [notes] = useCollectionData(notesRef);
+
   // const converter: FirestoreDataConverter<Note> = {
   //   toFirestore(note: WithFieldValue<Note>): DocumentData {
   //     return note;
@@ -49,12 +88,11 @@ const NotesList: FC = () => {
   // };
   // const [notes] = useCollectionData(notesRef.withConverter(converter));
   // TODO figure out how to use FirestoreDataConverter
-  const [notes] = useCollectionData(notesRef);
 
   return (
     <>
-    {/* {notes && notes.map(note => <Note note={note}/>)} */}
-    {notes && notes.map(note => <Note note={note as Note}/>)}
+      {/* {notes && notes.map(note => <Note note={note}/>)} */}
+      {notes && notes.map(note => <Note note={note as Note} />)}
     </>
   )
 }
@@ -62,22 +100,16 @@ const NotesList: FC = () => {
 const Note: FC<{ note: Note }> = (props) => {
   return (
     <>
-    <p>{props.note.content}</p>
+      <p>{props.note.content}</p>
     </>
   )
 }
 
-const UserInfo: FC<{ user?: User | null }> = (props) => {
-  let displayName, email;
-  if (props.user) {
-    displayName = props.user.displayName;
-    email = props.user.email ? props.user.email : '';
-  }
-
+const UserInfo: FC<{ user: User }> = (props) => {
   return (
     <>
-      <p>{displayName}</p>
-      <p>{email}</p>
+      <p>{props.user.displayName}</p>
+      <p>{props.user.email}</p>
     </>
   )
 }
