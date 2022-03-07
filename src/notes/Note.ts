@@ -1,6 +1,9 @@
-import { Timestamp } from "firebase/firestore";
+import { DocumentData, DocumentReference, Timestamp } from "firebase/firestore";
 
 export interface Note {
-    content: string;
-    created: Timestamp
+    id?: string;
+    ref?: DocumentReference<DocumentData>;
+    name?: string;
+    content?: string;
+    created?: Timestamp
 }
