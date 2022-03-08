@@ -1,10 +1,20 @@
 import { FC } from "react";
+import { FormControl } from "react-bootstrap";
 import { Note } from "./Note";
 
-export const NoteEditor: FC<{ note?: Note }> = (props) => {
+interface NoteEditorProps {
+    activeNote: Note,
+    onContentChanged: (newContent: string) => void
+}
+
+export const NoteEditor: FC<NoteEditorProps> = (props) => {
     return (
         <>
-            <input value={props.note?.content} placeholder="Note editor" />
+            <FormControl
+                as="textarea"
+                onChange={(e) => props.onContentChanged(e.target.value)}
+                value={props.activeNote.content}
+            />
         </>
-    )
+    );
 }
