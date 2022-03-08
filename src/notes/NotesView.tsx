@@ -1,5 +1,5 @@
 import { User } from "firebase/auth";
-import { collection, getFirestore } from "firebase/firestore";
+import { addDoc, collection, getFirestore, Timestamp, updateDoc } from "firebase/firestore";
 import { FC, useState } from "react";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import { app } from "../firebase";
@@ -17,12 +17,22 @@ export const NotesView: FC<NotesViewProps> = (props) => {
     const notesRef = collection(getFirestore(app), 'users', props.user.uid, 'notes').withConverter(converter);
     const [notes] = useCollectionData(notesRef);
 
-    const onContentChanged = (newContent: string) => {
+    const onContentChanged = async (newContent: string) => {
         if (!activeNote) return;
 
         const newNote = {...activeNote};
         newNote.content = newContent;
         setActiveNote(newNote);
+
+        // Update note on firestore
+        if (newNote.ref) {
+            await updateDoc(newNote.ref, {
+                content: newContent,
+                lastModified: Timestamp.now()
+            });
+        } else {
+            await addDoc(notesRef, newNote);
+        }
     };
 
     return (

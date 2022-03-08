@@ -5,7 +5,8 @@ export interface Note {
     ref?: DocumentReference<DocumentData>;
     name?: string;
     content?: string;
-    created?: Timestamp
+    created?: Timestamp;
+    lastModified?: Timestamp
 }
 
 export const converter: FirestoreDataConverter<Note> = {
@@ -13,7 +14,8 @@ export const converter: FirestoreDataConverter<Note> = {
         return {
             name: note.name,
             content: note.content,
-            created: note.created
+            created: note.created ? note.created : Timestamp.now(),
+            lastModified: Timestamp.now()
         };
     },
     fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): Note {
@@ -23,7 +25,8 @@ export const converter: FirestoreDataConverter<Note> = {
             ref: snapshot.ref,
             name: data.name,
             content: data.content,
-            created: data.created
+            created: data.created,
+            lastModified: data.lastModified
         };
     }
 };
