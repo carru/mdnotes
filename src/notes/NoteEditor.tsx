@@ -1,5 +1,5 @@
 import { addDoc, CollectionReference, Timestamp, updateDoc } from "firebase/firestore";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { FormControl } from "react-bootstrap";
 import { Note } from "./Note";
 import { marked  } from "marked";
@@ -30,11 +30,14 @@ export const NoteEditor: FC<NoteEditorProps> = (props) => {
         } else {
             await addDoc(props.notesRef, newNote);
         }
-
-        // Update html preview
-        const rawHtml = marked.parse(newContent);
-        setHtmlPreview(DOMPurify.sanitize(rawHtml, { USE_PROFILES: { html: true } }));
     };
+
+    useEffect(() => {
+        // Update html preview
+        const markdown = props.activeNote.content ? props.activeNote.content : '';
+        const rawHtml = marked.parse(markdown);
+        setHtmlPreview(DOMPurify.sanitize(rawHtml, { USE_PROFILES: { html: true } }));
+    }, [props.activeNote]);
 
     return (
         <>
